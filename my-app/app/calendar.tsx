@@ -8,7 +8,7 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(17);
   const [currentMonth, setCurrentMonth] = useState('April 2026');
 
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];       
   const days = Array.from({ length: 30 }, (_, i) => i + 1);
   
   const events = [

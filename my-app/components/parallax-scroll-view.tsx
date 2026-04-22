@@ -10,6 +10,10 @@ import Animated, {
 import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import { HeaderButton } from '@react-navigation/elements';
+import { RGBtoHSV } from 'react-native-reanimated/lib/typescript/Colors';
+import { beginAsyncEvent } from 'react-native/Libraries/Performance/Systrace';
 
 const HEADER_HEIGHT = 250;
 
@@ -43,7 +47,7 @@ export default function ParallaxScrollView({
       ],
     };
   });
-  {}
+
   return (
     <Animated.ScrollView
       ref={scrollRef}
@@ -77,3 +81,5 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 });
+
+
