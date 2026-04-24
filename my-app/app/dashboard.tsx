@@ -1,8 +1,19 @@
+import { useEffect } from "react";
+
+
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 export default function DashboardScreen() {
+  useEffect(() => {
+  fetch("http://192.168.1.5:5000/api/data") // apna IP
+    .then(res => res.json())
+    .then(data => {
+      console.log(data);
+    })
+    .catch(err => console.log(err));
+}, []);
   const router = useRouter();
 
   const stats = [
@@ -282,3 +293,7 @@ const styles = StyleSheet.create({
     height: 100,
   },
 });
+
+
+
+

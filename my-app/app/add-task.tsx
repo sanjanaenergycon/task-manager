@@ -75,6 +75,7 @@ export default function AddTaskScreen() {
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
+
   const handleSaveTask = async () => {
     if (!taskName.trim()) {
       if (Platform.OS === 'web') {
@@ -84,7 +85,25 @@ export default function AddTaskScreen() {
       }
       return;
     }
-    
+
+    // API call to backend
+    try {
+      const res = await fetch("http://192.168.1.29:5000/api/add-task", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: taskName,
+          desc: description,
+        }),
+      });
+      const data = await res.json();
+      console.log('Response:', data);
+    } catch (err) {
+      console.log(err);
+    }
+
     // Create task object
     const newTask = {
       id: Date.now().toString(),
@@ -98,7 +117,7 @@ export default function AddTaskScreen() {
       status: 'todo',
       members: selectedUsers.map(u => u.name.charAt(0)),
     };
-    
+
     // Save to storage
     try {
       const existingData = await storage.getItem('tasks');
@@ -108,7 +127,7 @@ export default function AddTaskScreen() {
     } catch {
       console.error('Error saving task');
     }
-    
+
     if (Platform.OS === 'web') {
       window.alert('Task saved successfully!' + (alarmEnabled ? ' Alarm set!' : ''));
     } else {
@@ -118,7 +137,11 @@ export default function AddTaskScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+   <ScrollView
+  style={styles.container}
+  showsVerticalScrollIndicator={false}
+  contentContainerStyle={{ paddingBottom: 100 }}
+>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <IconSymbol name="chevron.left" size={28} color="#1e3a5f" />
@@ -140,7 +163,7 @@ export default function AddTaskScreen() {
             value={taskName}
             onChangeText={setTaskName}
           />
-        </View>
+        </View> 
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Description</Text>
@@ -154,6 +177,21 @@ export default function AddTaskScreen() {
             textAlignVertical="top"
           />
         </View>
+        
+{/* <TouchableOpacity
+  style={{
+    backgroundColor: "blue",
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: "center",
+  }}
+  onPress={() => handleSaveTask()}
+>
+  <Text style={{ color: "white", fontWeight: "bold" }}>
+    SAVE TASK
+  </Text>
+</TouchableOpacity> */}
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Project</Text>
@@ -334,14 +372,22 @@ export default function AddTaskScreen() {
         </View>
       </View>
 
-      <TouchableOpacity 
-        style={styles.saveButton}
-        onPress={handleSaveTask}
-      >
-        <Text style={styles.saveButtonText}>Save Task</Text>
-      </TouchableOpacity>
-
-      <View style={styles.bottomPadding} />
+    <TouchableOpacity
+  activeOpacity={0.7}
+  style={{
+    backgroundColor: "blue",
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: "center",
+  }}
+  onPress={() => handleSaveTask()}
+>
+  <Text style={{ color: "white", fontWeight: "bold" }}>
+    SAVE TASK
+  </Text>
+</TouchableOpacity>
+      {/* <View style={styles.bottomPadding} /> */}
     </ScrollView>
   );
 }

@@ -1,20 +1,53 @@
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { useProtectedRoute } from '@/hooks/use-protected-route';
 
 export const unstable_settings = {
   anchor: 'splash',
+  initialRouteName: 'splash',
 };
+
+function InitialRouteGuard() {
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+  const segments = useSegments();
+
+  useEffect(() => {
+    if (loading) return;
+    
+    // Only run on initial app launch when segments is empty or just the app root
+    const currentSegment = segments[0] || '';
+    
+    // If app opens without a specific route or at root, redirect based on auth
+    const seg = currentSegment as string;
+    if (!isAuthenticated && (seg === '' || seg === '(tabs)' || seg === 'index')) {
+      router.replace('/splash');
+    }
+  }, [isAuthenticated, loading, segments, router]);
+
+  return null;
+}
 
 function RootLayoutNav() {
   useProtectedRoute();
+  const { loading } = useAuth();
   const colorScheme = useColorScheme();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color="#1e3a5f" />
+      </View>
+    );
+  }
 
   return (
     <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -52,6 +85,7 @@ function RootLayoutNav() {
         <Stack.Screen name="doc-detail" options={{ headerShown: false }} />
         <Stack.Screen name="share-doc" options={{ headerShown: false }} />
       </Stack>
+      <InitialRouteGuard />
       <StatusBar style="auto" />
     </NavigationThemeProvider>
   );
