@@ -1,11 +1,13 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useState } from 'react';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const menuItems = [
     { icon: 'chart.bar.fill', label: 'Dashboard', route: '/dashboard' as const },
@@ -20,6 +22,33 @@ export default function HomeScreen() {
     { icon: 'tray.fill', label: 'Inbox', route: '/inbox' as const },
     { icon: 'list.bullet', label: 'Planner', route: '/planner' as const },
   ];
+
+  type SearchItem = {
+    label: string;
+    route: typeof menuItems[number]['route'];
+    type: 'Page' | 'Task';
+    subtitle?: string;
+  };
+
+  const searchItems: SearchItem[] = [
+    ...menuItems.map((item) => ({
+      label: item.label,
+      route: item.route,
+      type: 'Page' as const,
+    })),
+    { label: 'Design System Update', subtitle: 'Orange Web App', route: '/tasks', type: 'Task' },
+    { label: 'Client Dashboard', subtitle: 'Orange Web App', route: '/tasks', type: 'Task' },
+    { label: 'UI Kit Research', subtitle: 'Product Design', route: '/tasks', type: 'Task' },
+    { label: 'User Interviews', subtitle: 'UX Research', route: '/tasks', type: 'Task' },
+    { label: 'Brand Guidelines', subtitle: 'Marketing', route: '/tasks', type: 'Task' },
+  ];
+
+  const filteredSearchResults = searchQuery.trim().length > 0
+    ? searchItems.filter((item) =>
+        item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.subtitle?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+      )
+    : [];
 
   const dynamicStyles = {
     container: { backgroundColor: colors.background },
@@ -53,12 +82,47 @@ export default function HomeScreen() {
 
       <View style={[styles.searchContainer, dynamicStyles.searchContainer]}>
         <IconSymbol name="magnifyingglass" size={20} color={colors.textMuted} />
-        <Text style={[styles.searchPlaceholder, dynamicStyles.searchPlaceholder]}>Search...</Text>
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          placeholder="Search tasks, pages, notes..."
+          placeholderTextColor={colors.textMuted}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <IconSymbol name="xmark.circle.fill" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+        )}
       </View>
+
+      {searchQuery.length > 0 && (
+        <View style={[styles.searchResultsContainer, dynamicStyles.searchContainer]}>
+          {filteredSearchResults.length > 0 ? (
+            filteredSearchResults.map((item, index) => (
+              <TouchableOpacity
+                key={`${item.label}-${index}`}
+                style={styles.searchResultItem}
+                onPress={() => router.push(item.route)}
+              >
+                <Text style={[styles.searchResultLabel, { color: colors.text }]}>{item.label}</Text>
+                <Text style={[styles.searchResultSubtitle, dynamicStyles.searchPlaceholder]}>
+                  {item.type}{item.subtitle ? ` · ${item.subtitle}` : ''}
+                </Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={[styles.noResultsText, dynamicStyles.searchPlaceholder]}>No results found</Text>
+          )}
+        </View>
+      )}
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Recent</Text>
-        <View style={[styles.recentCard, dynamicStyles.recentCard]}>
+        <TouchableOpacity
+          style={[styles.recentCard, dynamicStyles.recentCard]}
+          onPress={() => router.push('/dashboard')}
+        >
           <View style={styles.recentImage}>
             <Text style={styles.recentIcon}>📊</Text>
           </View>
@@ -69,7 +133,7 @@ export default function HomeScreen() {
           <TouchableOpacity style={styles.moreButton}>
             <IconSymbol name="ellipsis" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -242,6 +306,36 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
     fontWeight: '500',
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 14,
+    minHeight: 20,
+  },
+  searchResultsContainer: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  searchResultItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  searchResultLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  searchResultSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  noResultsText: {
+    paddingVertical: 10,
+    fontSize: 14,
   },
   bottomPadding: {
     height: 100,
